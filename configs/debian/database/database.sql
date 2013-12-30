@@ -201,6 +201,32 @@ CREATE TABLE IF NOT EXISTS `domain_dns` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `dns_tpl`
+--
+
+CREATE TABLE IF NOT EXISTS `dns_tpl` (
+  `dns_tpl_id` int(10) unsigned NOT NULL,
+  `dns_tpl_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `dns_tpl_content` text COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`dns_tpl_id`),
+  UNIQUE KEY `dns_tpl_name` (`dns_tpl_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `dns_tpl_admin`
+--
+
+CREATE TABLE IF NOT EXISTS `dns_tpl_admin` (
+  `dns_tpl_id` int(10) unsigned NOT NULL,
+  `admin_id` int(10) unsigned NOT NULL,
+  KEY `dns_tpl_id` (`dns_tpl_id`,`admin_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `domain_traffic`
 --
 
