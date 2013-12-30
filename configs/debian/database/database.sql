@@ -227,6 +227,18 @@ CREATE TABLE IF NOT EXISTS `dns_tpl_admin` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `dns_tpl_domain`
+--
+
+CREATE TABLE IF NOT EXISTS `dns_tpl_domain` (
+  `dns_tpl_id` int(10) unsigned NOT NULL,
+  `domain_name` int(10) unsigned NOT NULL,
+  KEY `dns_tpl_id` (`dns_tpl_id`,`domain_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `domain_traffic`
 --
 
