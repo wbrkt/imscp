@@ -36,12 +36,10 @@ use strict;
 use warnings;
 
 use iMSCP::Debug;
-use parent 'Common::SingletonClass', 'Exporter';
+use parent 'Exporter';
 
 use vars qw/@EXPORT/;
 @EXPORT = qw/process getBloc replaceBloc/;
-
-my $self = __PACKAGE__->getInstance();
 
 =head1 DESCRIPTION
 
@@ -65,6 +63,7 @@ my $self = __PACKAGE__->getInstance();
 sub process($$)
 {
 	my ($data, $tplContent) = @_;
+
 	$data = {} if ref $data ne 'HASH';
 
 	for (keys %{$data}) {
@@ -92,6 +91,7 @@ sub process($$)
 sub getBloc($$$;$)
 {
 	my ($beginTag, $endingTag, $tplContent, $includeTags) = @_;
+
 	my $regexp = '[\t ]*' . quotemeta($beginTag) . '(.*?)[\t ]*' . quotemeta($endingTag);
 	my $ret = '';
 
@@ -111,7 +111,7 @@ sub getBloc($$$;$)
  Param string Bloc begin tag
  Param string Bloc ending tag
  param string Template content which contain the bloc
- Param bool $preserveTags Whether or not begin and ending tag should be preserverd
+ Param bool $preserveTags Whether or not begin and ending tag should be preserved
  Return string Parsed template content
 
 =cut
@@ -119,6 +119,7 @@ sub getBloc($$$;$)
 sub replaceBloc($$$$;$)
 {
 	my ($beginTag, $endingTag, $replacement, $tplContent, $preserveTags) = @_;
+
 	my $regexp = '([\t ]*' . quotemeta($beginTag) . ').*?([\t ]*' . quotemeta($endingTag) . ')';
 
 	if($preserveTags) {
