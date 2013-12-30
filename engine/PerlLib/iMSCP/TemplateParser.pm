@@ -111,7 +111,7 @@ sub getBloc($$$;$)
  Param string Bloc begin tag
  Param string Bloc ending tag
  param string Template content which contain the bloc
- Param bool $includeTags Whether or not begin and ending tag should be included in result
+ Param bool $preserveTags Whether or not begin and ending tag should be preserverd
  Return string Parsed template content
 
 =cut
@@ -119,10 +119,10 @@ sub getBloc($$$;$)
 sub replaceBloc($$$$;$)
 {
 	my ($beginTag, $endingTag, $replacement, $tplContent, $preserveTags) = @_;
-	my $regexp = '([\t ]*' . quotemeta($beginTag) . '.*?' . quotemeta($endingTag) . ')';
+	my $regexp = '([\t ]*' . quotemeta($beginTag) . ').*?([\t ]*' . quotemeta($endingTag) . ')';
 
 	if($preserveTags) {
-		$tplContent =~ s/$regexp/$replacement$1/gis;
+		$tplContent =~ s/$regexp/$replacement$1$2/gis;
 	} else {
 		$tplContent =~ s/$regexp/$replacement/gis;
 	}
