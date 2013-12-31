@@ -2,7 +2,7 @@
 
 =head1 NAME
 
- iMSCP::Net - Package allowing to manage network devices
+ iMSCP::Net - Package allowing to manage network devices and IP addresses
 
 =cut
 
@@ -29,6 +29,8 @@
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
 
+# TODO: Handle input prefix lenght (CIDR)
+
 package iMSCP::Net;
 
 use strict;
@@ -41,7 +43,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- iMSCP::Net library. Library allowing to manage network devices.
+ Package allowing to manage network devices and IP addresses.
 
 =head1 PUBLIC METHODS
 
@@ -77,8 +79,10 @@ sub addAddr($$$)
 	my ($self, $addr, $dev) = @_;
 
 	if($self->isValidAddr($addr)) {
-		if($self->isKnownDevice($dev)) {
-			if(! $self->isKnownAddr($addr)) {
+		unless($self->isKnownAddr($addr)) {
+			if($self->isKnownDevice($dev)) {
+				$addr = $self->normalizeAddr($addr);
+
 				my $cidr = (ip_is_ipv4($addr)) ? 32 : 64; # TODO should be configurable
 
 				my ($stdout, $stderr);
@@ -88,11 +92,11 @@ sub addAddr($$$)
 				error("Unable to add IP $addr to network device $dev") if $rs && ! $stderr;
 				return $rs if $rs;
 
-				# The module must be aware of this new IP
-				$self->{'addresses'}->{$self->normalizeAddr($addr, 6)} = {
-					'device' => $dev,
+				# This class must be aware of this new IP
+				$self->{'addresses'}->{$addr} = {
+					'prefix_length' => $cidr,
 					'version' => $self->getAddrVersion($addr),
-					'cidr' =>  $cidr
+					'device' => $dev
 				};
 			}
 		} else {
@@ -120,10 +124,12 @@ sub delAddr($$)
 {
 	my ($self, $addr) = @_;
 
-	if($self->isKnownAddr($addr)) {
-		if($self->isValidAddr($addr)) {
+	if($self->isValidAddr($addr)) {
+		if($self->isKnownAddr($addr)) {
+			$addr = $self->normalizeAddr($addr);
+
 			my $dev = $self->{'addresses'}->{$addr}->{'device'};
-			my $cidr = $self->{'addresses'}->{$addr}->{'cidr'};
+			my $cidr = $self->{'addresses'}->{$addr}->{'prefix_length'};
 
 			my ($stdout, $stderr);
 			my $rs = execute("$main::imscpConfig{'CMD_IP'} addr del $addr/$cidr dev $dev", \$stdout, \$stderr);
@@ -132,12 +138,12 @@ sub delAddr($$)
 			error("Unable to delete IP $addr from network device $dev") if $rs && ! $stderr;
 			return $rs if $rs;
 
-			# The module must be aware of this deletion
-			delete $self->{'addresses'}->{$self->normalizeAddr($addr, 6)};
-		} else {
-			error("Invalid IP: $addr");
-			return 1;
+			# This class must be aware of this deletion
+			delete $self->{'addresses'}->{$addr};
 		}
+	} else {
+		error("Invalid IP: $addr");
+		return 1;
 	}
 
 	0;
@@ -205,7 +211,7 @@ sub isKnownAddr($$)
 {
 	my ($self, $addr) = @_;
 
-	(exists($self->{'addresses'}->{$self->normalizeAddr($addr, 6)})) ? 1 : 0;
+	(exists($self->{'addresses'}->{$self->normalizeAddr($addr)})) ? 1 : 0;
 }
 
 =item isValidAddr($addr)
@@ -223,7 +229,6 @@ sub isValidAddr($$)
 
 	(ip_get_version($addr)) ? 1 : 0;
 }
-
 
 =item normalizeAddr($addr)
 
@@ -274,7 +279,7 @@ sub isKnownDevice($$)
 
 =item upDevice($dev)
 
- Up the given network device
+ Bring the the given network device up
 
  Param string $dev Network device name
  Return int 0 on success, other on failure
@@ -292,7 +297,7 @@ sub upDevice($$)
 		my $rs = execute("$main::imscpConfig{'CMD_IP'} link set dev $dev up", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
-		error("Unable to up the $dev network device") if $rs && ! $stderr;
+		error("Unable to bring the network device up: $dev") if $rs && ! $stderr;
 	} else {
 		error("Unknown network device: $dev");
 	 	$rs = 1;
@@ -303,7 +308,7 @@ sub upDevice($$)
 
 =item downDevice($dev)
 
- Down the given network device
+ Bring the given network device down
 
  Param string $dev Network device name
  Return int 0 on success, other on failure
@@ -321,7 +326,7 @@ sub downDevice($$)
 		my $rs = execute("$main::imscpConfig{'CMD_IP'} link set dev $dev down", \$stdout, \$stderr);
 		debug($stdout) if $stdout;
 		error($stderr) if $stderr && $rs;
-		error("Unable to down the $dev network device") if $rs && ! $stderr;
+		error("Unable to bring the network device down: $dev") if $rs && ! $stderr;
 	} else {
 		error("Unknown network device: $dev");
 		$rs = 1;
@@ -380,65 +385,58 @@ sub _init
 {
 	my $self = shift;
 
-	$self->{'devices'} = $self->_getDevices() || fatal('Unable to get network devices');
-	$self->{'addresses'} = $self->_getAddresses() || fatal('Unable to get IP addresses');
-
-	$self;
-}
-
-=item _getDevices()
-
- Get network devices currently set on the system (excluding loopback interface)
-
- Return hash|undef A hash describing each device found or undef on failure
-
-=cut
-
-sub _getDevices
-{
-	my $self = shift;
-
-	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'CMD_IP'} -o link show", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	return undef if $rs;
-
-	my $devices = {};
-
-	while($stdout =~ /^\d+:\s+(.*?):.*state\s+(UP|DOWN)/gm) {
-		$devices->{$1}->{'status'} = $2;
-	}
-
-	$devices;
-}
-
-=item _getDevices()
-
- Get IP currently set on the system (excluding those set on loopback interface)
-
- Return hash|undef A hash describing each IP found or undef on failure
-
-=cut
-
-sub _getAddresses
-{
-	my $self = shift;
-
 	my ($stdout, $stderr);
 	my $rs = execute("$main::imscpConfig{'CMD_IP'} -o addr show", \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	error($stderr) if $stderr && $rs;
-	return undef if $rs;
+	fatal('Unable to get network devices data') if $rs;
+
+	$self->{'devices'} = $self->_extractDevices($stdout);
+	$self->{'addresses'} = $self->_extractAddresses($stdout);
+
+	$self;
+}
+
+=item _extractDevices($data)
+
+ Extract network devices data (excluding loopback interface)
+
+ Param string String from which devices data must be extracted
+ Return hash|undef A hash describing each device found or undef on failure
+
+=cut
+
+sub _extractDevices($$)
+{
+	my ($self, $data) = @_;
+
+	my $devices = {};
+
+	$devices->{$1}->{'status'} = $2 while($data =~ /^\d+:\s+(.*?):.*state\s+(UP|DOWN)/gm);
+
+	$devices;
+}
+
+=item _extractAddresses($data)
+
+ Extract addresses data (excluding those set on loopback interface)
+
+ Param string String from which addresses data must be extracted
+ Return hash|undef A hash describing each IP found or undef on failure
+
+=cut
+
+sub _extractAddresses($$)
+{
+	my ($self, $data) = @_;
 
 	my $addresses = {};
 
-	while($stdout =~ m%^\d+:\s+(.*?)\s+(inet6?)\s+([^/]+)/(\d+)%gm) {
-		next if $1 eq 'lo';
-		$addresses->{$self->normalizeAddr($3, 6)} = {
-			'device' => $1,
+	while($data =~ m%^\d+:\s+(.*?)\s+(inet6?)\s+([^/]+)/(\d+).*?\s+scope\s+global%gm) {
+		$addresses->{$self->normalizeAddr($3)} = {
+			'prefix_length' => $4,
 			'version' => ($2 eq 'inet') ? 'ipv4' : 'ipv6',
-			'cidr' => $4
+			'device' => $1
 		} ;
 	}
 
