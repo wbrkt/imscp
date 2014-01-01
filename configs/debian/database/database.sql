@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS `domain_dns` (
 --
 
 CREATE TABLE IF NOT EXISTS `dns_tpl` (
-  `dns_tpl_id` int(10) unsigned NOT NULL,
+  `dns_tpl_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `dns_tpl_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `dns_tpl_content` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`dns_tpl_id`),

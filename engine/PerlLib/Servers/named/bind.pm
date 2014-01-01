@@ -312,11 +312,18 @@ sub addSub($$)
 				return 1;
 			}
 
-			my $subEntry = iMSCP::File->new('filename' => "$self->{'tplDir'}/db_sub.tpl")->get();
+			my $subEntry = iMSCP::File->new('filename' => "$self->{'tplDir'}/db.tpl")->get();
 			unless(defined $subEntry) {
-				error("Unable to read $self->{'tplDir'}/db_sub.tpl file");
+				error("Unable to read $self->{'tplDir'}/db.tpl file");
 				return 1;
 			}
+
+			$subEntry = getBloc(
+				"; sub [{SUBDOMAIN_NAME}] entry BEGIN\n",
+				"; sub [{SUBDOMAIN_NAME}] entry ENDING\n",
+				$subEntry,
+				'includeTags'
+			);
 
 			# Process MX and SPF entries
 
@@ -370,7 +377,7 @@ sub addSub($$)
 				"; sub [{SUBDOMAIN_NAME}] entry ENDING\n",
 				$subEntry,
 				$wrkDbFileContent,
-				'preserve'
+				'preserveTags'
 			);
 
 			$rs = $self->{'hooksManager'}->trigger('afterNamedAddSub', \$wrkDbFileContent, $data);
@@ -728,7 +735,7 @@ sub _addDmnConfig($$)
 				"// imscp [{ENTRY_ID}] entry ENDING\n",
 				$tplCfgEntryContent,
 				$cfgWrkFileContent,
-				'preserve'
+				'preserveTags'
 			);
 
 			$rs = $self->{'hooksManager'}->trigger('afterNamedAddDmnConfig', \$cfgWrkFileContent, $data);
@@ -870,6 +877,15 @@ sub _addDmnDb($$)
 		return 1;
 	}
 
+	# Removing useless bloc
+	$tplDbFileContent = replaceBloc(
+		"; sub [{SUBDOMAIN_NAME}] entry BEGIN\n",
+		"; sub [{SUBDOMAIN_NAME}] entry ENDING\n",
+		'',
+		$tplDbFileContent,
+		'preserveTags'
+	);
+
 	my $rs = $self->{'hooksManager'}->trigger('beforeNamedAddDmnDb', \$tplDbFileContent, $data);
 	return $rs if $rs;
 
@@ -951,11 +967,9 @@ sub _addDmnDb($$)
 				"{NAME}\t{CLASS}\t{TYPE}\t{DATA}\n"
 			);
 		}
-	}
 
-	$tplDbFileContent = replaceBloc(
-		"; custom DNS entries BEGIN\n", "; custom DNS entries ENDING\n", $customDnsEntries, $tplDbFileContent
-	);
+		$tplDbFileContent .= $customDnsEntries;
+	}
 
 	# Process customer als entries
 

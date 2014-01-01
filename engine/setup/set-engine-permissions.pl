@@ -95,12 +95,12 @@ sub process
 	return $rs if $rs;
 
 	# eg. /etc/imscp
-	$rs = setRights($confDir, { 'user' => $rootUName, 'group' => $imscpGName } );
+	$rs = setRights($confDir, { 'user' => $rootUName, 'group' => $imscpGName, 'recursive' => 1 } );
     return $rs if $rs;
 
 	# eg. /etc/imscp/imscp*
-	$rs = setRights("$confDir/imscp*", { 'user' => $rootUName, 'group' => $imscpGName, 'mode' => '0640'} );
-	return $rs if $rs;
+	#$rs = setRights("$confDir/imscp*", { 'user' => $rootUName, 'group' => $imscpGName, 'mode' => '0640'} );
+	#return $rs if $rs;
 
 	# eg. /var/www/imscp/engine
 	$rs = setRights(
