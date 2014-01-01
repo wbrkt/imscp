@@ -293,6 +293,11 @@
                     <uri>/admin/custom_menus.php</uri>
                     <title_class>custom_link</title_class>
                 </custom_menus>
+                <dns_templates>
+                    <label>DNS templates</label>
+                    <uri>/admin/settings_dns_tpls.php</uri>
+                    <title_class>custom_link</title_class>
+                </dns_templates>
                 <ip_management>
                     <label>IP management</label>
                     <uri>/admin/ip_manage.php</uri>
