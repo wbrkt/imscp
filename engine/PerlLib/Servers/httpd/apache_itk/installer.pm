@@ -2,12 +2,12 @@
 
 =head1 NAME
 
- Servers::httpd::apache_itk::installer - i-MSCP Apache FCGI Server implementation
+ Servers::httpd::apache_itk::installer - i-MSCP Apache2/ITK Server implementation
 
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+# Copyright (C) 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # @category    i-MSCP
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   2010-2014 by i-MSCP | http://i-mscp.net
 # @author      Daniel Andreca <sci2tech@gmail.com>
 # @author      Laurent Declercq <l;declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
@@ -53,7 +53,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- Installer for the i-MSCP Apache ITK Server implementation.
+ Installer for the i-MSCP Apache2/ITK Server implementation.
 
 =head1 PUBLIC METHODS
 
@@ -218,9 +218,8 @@ sub setEnginePermissions()
 	# eg. /var/www/imscp/engine/imscp-apache-logger
 	# FIXME: This is a quick fix
 	$rs = setRights(
-		"$main::imscpConfig{'ROOT_DIR'}/engine/imscp-apache-logger", {
-			'user' => $rootUName, 'group' => $rootGName, 'mode' => '0750'
-		}
+		"$main::imscpConfig{'ROOT_DIR'}/engine/imscp-apache-logger",
+		{ 'user' => $rootUName, 'group' => $rootGName, 'mode' => '0750' }
 	);
 	return $rs if $rs;
 
@@ -531,7 +530,7 @@ sub _buildPhpConfFiles
 
 	# Build file using template from apache/parts/php5.itk.ini
 	$rs = $self->{'httpd'}->buildConfFile(
-		$self->{'apacheCfgDir'} . '/parts/php' . $self->{'config'}->{'PHP_VERSION'} . '.itk.ini',
+		$self->{'apacheCfgDir'} . '/parts/php5.itk.ini',
 		{},
 		{ 'destination' => "$self->{'apacheWrkDir'}/php.ini", 'mode' => 0644, 'user' => $rootUName, 'group' => $rootGName }
 	);
@@ -541,7 +540,7 @@ sub _buildPhpConfFiles
 	$rs = iMSCP::File->new(
 		'filename' => "$self->{'apacheWrkDir'}/php.ini"
 	)->copyFile(
-		$self->{'config'}->{"ITK_PHP$self->{'config'}->{'PHP_VERSION'}_PATH"}
+		$self->{'config'}->{"ITK_PHP5_PATH"}
 	);
 	return $rs if $rs;
 
@@ -549,6 +548,7 @@ sub _buildPhpConfFiles
 
 	# Disable/Enable Apache modules
 
+	# Transitional: fastcgi_imscp
 	my @toDisableModules = (
 		'fastcgi', 'fcgid', 'fastcgi_imscp', 'fcgid_imscp', 'php_fpm_imscp', 'php4', 'php5_cgi', 'suexec'
 	);
@@ -629,13 +629,18 @@ sub _buildApacheConfFiles
 		$pipeSyntax .= '|';
 	}
 
+	my $apache24 = (version->new("v$self->{'httpd'}->{'config'}->{'APACHE_VERSION'}") >= version->new('v2.4.0'));
+
 	# Set needed data
 	$self->{'httpd'}->setData(
 		{
 			BASE_SERVER_VHOST_PREFIX => $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'},
 			BASE_SERVER_VHOST => $main::imscpConfig{'BASE_SERVER_VHOST'},
 			ROOT_DIR => $main::imscpConfig{'ROOT_DIR'},
-			PIPE => $pipeSyntax
+			APACHE_ROOT_DIR => $self->{'httpd'}->{'config'}->{'APACHE_ROOT_DIR'},
+			PIPE => $pipeSyntax,
+			AUTHZ_DENY_ALL => $apache24 ? 'Require all denied' : 'Deny from all',
+			AUTHZ_ALLOW_ALL => $apache24 ? 'Require all granted' : 'Allow from all'
 		}
 	);
 
@@ -701,7 +706,7 @@ sub _buildMasterVhostFiles
 			GUI_CERT_DIR => $main::imscpConfig{'GUI_CERT_DIR'},
 			SERVER_HOSTNAME => $main::imscpConfig{'SERVER_HOSTNAME'},
 			AUTHZ_ALLOW_ALL => (version->new("v$self->{'config'}->{'APACHE_VERSION'}") >= version->new('v2.4.0'))
-				? 'Require all granted' : "Order allow,deny\n    Allow from all"
+				? 'Require all granted' : 'Allow from all'
 		}
 	);
 
@@ -722,8 +727,7 @@ sub _buildMasterVhostFiles
 						$customTagBegin .
 						getBloc($customTagBegin, $customTagEnding, $$fileContent) .
 						"    RewriteEngine On\n" .
-						"    RewriteCond %{HTTPS} off\n" .
-						"    RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]\n" .
+						"    RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]\n" .
 						$customTagEnding;
 
 					$$fileContent = replaceBloc($customTagBegin, $customTagEnding, $customBlock, $$fileContent);

@@ -2,12 +2,12 @@
 
 =head1 NAME
 
- Servers::httpd::apache_php_fpm::installer - i-MSCP Apache PHP-FPM Server implementation
+ Servers::httpd::apache_php_fpm::installer - i-MSCP Apache2/PHP-FPM Server implementation
 
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+# Copyright (C) 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # @category    i-MSCPuse iMSCP::Execute;332
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   2010-2014 by i-MSCP | http://i-mscp.net
 # @author      Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -52,7 +52,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- Installer for the i-MSCP Apache PHP-FPM Server implementation.
+ Installer for the i-MSCP Apache2/PHP-FPM Server implementation
 
 =head1 PUBLIC METHODS
 
@@ -178,9 +178,6 @@ sub install
 	$rs = $self->_installLogrotate();
 	return $rs if $rs;
 
-	$rs = $self->_installPhpFpmInitScript();
-	return $rs if $rs;
-
 	$rs = $self->_saveConf();
 	return $rs if $rs;
 
@@ -275,9 +272,8 @@ sub setEnginePermissions()
 	# eg. /var/www/imscp/engine/imscp-apache-logger
 	# FIXME: This is a quick fix
 	$rs = setRights(
-		"$main::imscpConfig{'ROOT_DIR'}/engine/imscp-apache-logger", {
-			'user' => $rootUName, 'group' => $rootGName, 'mode' => '0750'
-		}
+		"$main::imscpConfig{'ROOT_DIR'}/engine/imscp-apache-logger",
+		{ 'user' => $rootUName, 'group' => $rootGName, 'mode' => '0750' }
 	);
 	return $rs if $rs;
 
@@ -560,7 +556,12 @@ sub _buildFastCgiConfFiles
 	# Backup, build, store and install the php_fpm_imscp.conf file
 
 	# Set needed data
-	$self->{'httpd'}->setData({ PHP_VERSION => $self->{'config'}->{'PHP_VERSION'} });
+	$self->{'httpd'}->setData(
+		{
+			AUTHZ_ALLOW_ALL => (version->new("v$self->{'config'}->{'APACHE_VERSION'}") >= version->new('v2.4.0'))
+				? 'Require env REDIRECT_STATUS' : "Order allow,deny\n        Allow from env=REDIRECT_STATUS"
+		}
+	);
 
 	$rs = $self->{'httpd'}->phpfpmBkpConfFile("$self->{'config'}->{'APACHE_MODS_DIR'}/php_fpm_imscp.conf");
 	return $rs if $rs;
@@ -598,6 +599,7 @@ sub _buildFastCgiConfFiles
 
 	# Disable/Enable Apache modules
 
+	# Transitional: fastcgi_imscp
 	my @toDisableModules = (
 		'fastcgi', 'fcgid', 'fastcgi_imscp', 'fcgid_imscp', 'php4', 'php5', 'php5_cgi', 'php5filter'
 	);
@@ -652,7 +654,7 @@ sub _buildPhpConfFiles
 	);
 
 	$rs = $self->{'httpd'}->buildConfFile(
-		"$self->{'phpfpmCfgDir'}/parts/php$self->{'config'}->{'PHP_VERSION'}.ini",
+		"$self->{'phpfpmCfgDir'}/parts/php5.ini",
 		{},
 		{
 			'destination' => "$self->{'phpfpmWrkDir'}/php.ini",
@@ -672,9 +674,6 @@ sub _buildPhpConfFiles
 
 	$rs = $self->{'httpd'}->phpfpmBkpConfFile("$self->{'phpfpmConfig'}->{'PHP_FPM_CONF_DIR'}/php-fpm.conf", '', 1);
 	return $rs if $rs;
-
-	# Set needed data
-	$self->{'httpd'}->setData({ PHP_VERSION => $self->{'config'}->{'PHP_VERSION'} });
 
 	$rs = $self->{'httpd'}->buildConfFile(
 		"$self->{'phpfpmCfgDir'}/php-fpm.conf", {}, { 'destination' => "$self->{'phpfpmWrkDir'}/php-fpm.conf" }
@@ -710,7 +709,6 @@ sub _buildMasterPhpFpmPoolFile
 
 	$self->{'httpd'}->setData(
 		{
-			PHP_VERSION => $self->{'config'}->{'PHP_VERSION'},
 			BASE_SERVER_VHOST => $main::imscpConfig{'BASE_SERVER_VHOST'},
 			SYSTEM_USER_PREFIX => $main::imscpConfig{'SYSTEM_USER_PREFIX'},
 			SYSTEM_USER_MIN_UID => $main::imscpConfig{'SYSTEM_USER_MIN_UID'},
@@ -766,7 +764,6 @@ sub _buildApacheConfFiles
 	# Backup, build, store and install ports.conf file if exists
 
 	if(-f "$self->{'config'}->{'APACHE_CONF_DIR'}/ports.conf") {
-
 		$rs = $self->{'httpd'}->apacheBkpConfFile("$self->{'config'}->{'APACHE_CONF_DIR'}/ports.conf", '', 1);
 		return $rs if $rs;
 
@@ -806,13 +803,18 @@ sub _buildApacheConfFiles
 		$pipeSyntax .= '|';
 	}
 
+	my $apache24 = (version->new("v$self->{'httpd'}->{'config'}->{'APACHE_VERSION'}") >= version->new('v2.4.0'));
+
 	# Set needed data
 	$self->{'httpd'}->setData(
 		{
 			BASE_SERVER_VHOST_PREFIX => $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'},
 			BASE_SERVER_VHOST => $main::imscpConfig{'BASE_SERVER_VHOST'},
 			ROOT_DIR => $main::imscpConfig{'ROOT_DIR'},
-			PIPE => $pipeSyntax
+			APACHE_ROOT_DIR => $self->{'httpd'}->{'config'}->{'APACHE_ROOT_DIR'},
+			PIPE => $pipeSyntax,
+			AUTHZ_DENY_ALL => $apache24 ? 'Require all denied' : 'Deny from all',
+			AUTHZ_ALLOW_ALL => $apache24 ? 'Require all granted' : 'Allow from all'
 		}
 	);
 
@@ -865,9 +867,8 @@ sub _buildMasterVhostFiles
 			PEAR_DIR => $main::imscpConfig{'PEAD_DIR'},
 			GUI_CERT_DIR => $main::imscpConfig{'GUI_CERT_DIR'},
 			SERVER_HOSTNAME => $main::imscpConfig{'SERVER_HOSTNAME'},
-			PHP_VERSION => $self->{'config'}->{'PHP_VERSION'},
 			AUTHZ_ALLOW_ALL => (version->new("v$self->{'config'}->{'APACHE_VERSION'}") >= version->new('v2.4.0'))
-				? 'Require all granted' : "Order allow,deny\n    Allow from all"
+				? 'Require all granted' : 'Allow from all'
 		}
 	);
 
@@ -891,8 +892,7 @@ sub _buildMasterVhostFiles
 						$customTagBegin .
 						getBloc($customTagBegin, $customTagEnding, $$fileContent) .
 						"    RewriteEngine On\n" .
-						"    RewriteCond %{HTTPS} off\n" .
-						"    RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]\n" .
+						"    RewriteRule .* https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]\n" .
 						$customTagEnding;
 
 					$$fileContent = replaceBloc($customTagBegin, $customTagEnding, $customBlock, $$fileContent);
@@ -1008,64 +1008,6 @@ sub _installLogrotate
 	return $rs if $rs;
 
 	$self->{'hooksManager'}->trigger('afterHttpdInstallLogrotate', 'php5-fpm');
-}
-
-=item _installPhpFpmInitScript()
-
- Install PHP FPM init script
-
- Note: We provide our own init script since the one provided in older Debian/Ubuntu versions doesnt provide the
-reopen-logs function.
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub _installPhpFpmInitScript
-{
-	my $self = shift;
-
-	my $rs = $self->{'hooksManager'}->trigger('beforeHttpdInstallPhpFpmInitScript');
-	return $rs if $rs;
-
-	my ($stdout, $stderr);
-
-	my $php5fpmInitScriptPath = "$main::imscpConfig{'INIT_SCRIPTS_DIR'}/$self->{'phpfpmConfig'}->{'PHP_FPM_SNAME'}";
-
-	if (-f $php5fpmInitScriptPath) {
-		my $file = iMSCP::File->new('filename' => $php5fpmInitScriptPath);
-
-		$rs = $file->owner($main::imscpConfig{'ROOT_USER'}, $main::imscpConfig{'ROOT_GROUP'});
-		return $rs if $rs;
-
-		$rs = $file->mode(0755);
-		return $rs if $rs;
-
-		if($main::imscpConfig{'SERVICE_INSTALLER'} ne 'no') {
-			$rs = execute(
-				"$main::imscpConfig{'SERVICE_INSTALLER'} -f $self->{'phpfpmConfig'}->{'PHP_FPM_SNAME'} remove",
-				\$stdout,
-				\$stderr
-			);
-			debug ($stdout) if $stdout;
-			error($stderr) if $stderr && $rs;
-			return $rs if $rs;
-
-			$rs = execute(
-				"$main::imscpConfig{'SERVICE_INSTALLER'} $self->{'phpfpmConfig'}->{'PHP_FPM_SNAME'} defaults",
-				\$stdout,
-				\$stderr
-			);
-			debug ($stdout) if $stdout;
-			error($stderr) if $stderr && $rs;
-			return $rs if $rs;
-		}
-	} else {
-		error("File $php5fpmInitScriptPath is missing");
-		return 1;
-	}
-
-	$self->{'hooksManager'}->trigger('afterHttpdInstallPhpFpmInitScript');
 }
 
 =item _saveConf()

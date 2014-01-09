@@ -1,9 +1,5 @@
 APACHE_VERSION =
 
-PHP_FASTCGI =
-
-PHP_VERSION = 5
-
 ITK_PHP5_PATH = /etc/php5/apache2/php.ini
 
 CMD_A2ENSITE = /usr/sbin/a2ensite
@@ -15,6 +11,8 @@ HTTPD_SNAME = apache2
 APACHE_CONF_DIR = /etc/apache2
 
 APACHE_LOG_DIR = /var/log/apache2
+
+APACHE_ROOT_DIR = /var/www
 
 APACHE_BACKUP_LOG_DIR = /var/log/apache2/backup
 
@@ -39,8 +37,6 @@ HTACCESS_USERS_FILE_NAME = .htpasswd
 HTACCESS_GROUPS_FILE_NAME = .htgroup
 
 HTPASSWD_CMD = /usr/bin/htpasswd2
-
-SCOREBOARDS_DIR = /var/www/scoreboards
 
 ##### Obsolete
 

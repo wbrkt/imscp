@@ -21,7 +21,7 @@
  * Portions created by the ispCP Team are Copyright (C) 2006-2010 by
  * isp Control Panel. All Rights Reserved.
  *
- * Portions created by the i-MSCP Team are Copyright (C) 2010-2013 by
+ * Portions created by the i-MSCP Team are Copyright (C) 2010-2014 by
  * i-MSCP - internet Multi Server Control Panel. All Rights Reserved.
  *
  * @category    i-MSCP
@@ -29,7 +29,7 @@
  * @subpackage  Admin
  * @copyright   2001-2006 by moleSoftware GmbH
  * @copyright   2006-2010 by ispCP | http://isp-control.net
- * @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+ * @copyright   2010-2014 by i-MSCP | http://i-mscp.net
  * @author      ispCP Team
  * @author      i-MSCP Team
  * @link        http://i-mscp.net
@@ -99,7 +99,8 @@ if (isset($_POST['uaction']) && $_POST['uaction'] == 'apply') {
 
 		foreach (
 			array(
-				'show_source', 'system', 'shell_exec', 'shell_exec', 'passthru', 'exec',  'phpinfo', 'shell', 'symlink'
+				'show_source', 'system', 'shell_exec', 'shell_exec', 'passthru', 'exec',  'phpinfo', 'shell', 'symlink',
+				'proc_open', 'popen'
 			) as $function
 		) {
 			if (isset($_POST[$function])) { // we are safe here
@@ -571,7 +572,9 @@ $htmlChecked = $cfg->HTML_CHECKED;
 
 if (PHP_SAPI != 'apache2handler') {
 	$disabledFunctions = explode(',', $phpini->getDataVal('phpiniDisableFunctions'));
-	$disabledFunctionsAll = array('SHOW_SOURCE', 'SYSTEM', 'SHELL_EXEC', 'PASSTHRU', 'EXEC', 'PHPINFO', 'SHELL', 'SYMLINK');
+	$disabledFunctionsAll = array(
+		'SHOW_SOURCE', 'SYSTEM', 'SHELL_EXEC', 'PASSTHRU', 'EXEC', 'PHPINFO', 'SHELL', 'SYMLINK', 'PROC_OPEN', 'POPEN',
+	);
 
 	foreach ($disabledFunctionsAll as $function) {
 		$tpl->assign($function, in_array(strtolower($function), $disabledFunctions) ? $htmlChecked : '');

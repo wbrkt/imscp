@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+# Copyright (C) 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # @category    i-MSCP
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   2010-2014 by i-MSCP | http://i-mscp.net
 # @author      Daniel Andreca <sci2tech@gmail.com>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -35,28 +35,30 @@ use parent 'Common::SingletonClass', 'Exporter';
 use vars qw/@EXPORT/;
 @EXPORT = qw/setRights/;
 
-sub setRights
+sub setRights($$)
 {
-	my $file = shift;
-	my $options = shift;
-	my $rs = 0;
+	my ($file, $options) = @_;
+
 	$options = {} if ref $options ne 'HASH';
 
+	my $rs = 0;
+
 	my  @dchmod = (
-		"find $file -type d -print0 | xargs", ($^O !~ /bsd$/ ? '-r' : ''), "-0 chmod $options->{'dirmode'}"
+		"find $file -type d -print0 | xargs", $^O !~ /bsd$/ ? '-r' : '', "-0 chmod $options->{'dirmode'}"
 	) if $options->{'dirmode'};
 
 	my  @fchmod = (
-		"find $file -type f -print0 | xargs", ($^O !~ /bsd$/ ? '-r' : ''), "-0 chmod $options->{'filemode'}"
+		"find $file -type f -print0 | xargs", $^O !~ /bsd$/ ? '-r' : '', "-0 chmod $options->{'filemode'}"
 	) if $options->{'filemode'};
 
 	my  @chmod = (
-		$main::imscpConfig{'CMD_CHMOD'}, ($options->{'recursive'} ? '-R' : ''), "$options->{'mode'} $file"
+		$main::imscpConfig{'CMD_CHMOD'}, $options->{'recursive'} ? '-R' : '', "$options->{'mode'} $file"
 	) if $options->{'mode'};
 
 	my  @chown = (
 		$main::imscpConfig{'CMD_CHOWN'},
-		($options->{'recursive'} ? '-R' : ''),
+		'-h', # Do not dereference (never modify the target referenced by a symlink). Acts on the symlink itself
+		$options->{'recursive'} ? '-R' : '',
 		"$options->{'user'}:$options->{'group'} $file"
 	) if $options->{'user'} && $options->{'group'};
 

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+# Copyright (C) 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # @category    i-MSCP
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   2010-2014 by i-MSCP | http://i-mscp.net
 # @author      Daniel Andreca <sci2tech@gmail.com>
 # @author      Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
@@ -197,7 +197,6 @@ sub buildHTTPDData
 		MOUNT_POINT => $self->{'subdomain_alias_mount'},
 		PEAR_DIR => $main::imscpConfig{'PEAR_DIR'},
 		PHP_TIMEZONE => $main::imscpConfig{'PHP_TIMEZONE'},
-		PHP_VERSION => $main::imscpConfig{'PHP_VERSION'},
 		BASE_SERVER_VHOST_PREFIX => $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'},
 		BASE_SERVER_VHOST => $main::imscpConfig{'BASE_SERVER_VHOST'},
 		USER => $userName,

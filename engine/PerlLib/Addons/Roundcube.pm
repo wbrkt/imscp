@@ -7,7 +7,7 @@ Addons::Roundcube - i-MSCP Roundcube addon
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+# Copyright (C) 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ Addons::Roundcube - i-MSCP Roundcube addon
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # @category    i-MSCP
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   2010-2014 by i-MSCP | http://i-mscp.net
 # @author      Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -39,7 +39,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- Roundcube addon for i-MSCP.
+ Roundcube addon for i-MSCP
 
  RoundCube Webmail is a browser-based multilingual IMAP client with an application-like user interface. It provides full
 functionality expected from an email client, including MIME support, address book, folder manipulation and message
@@ -55,7 +55,7 @@ filters.
 
 =item registerSetupHooks(\%hooksManager)
 
- Register setup hook functions.
+ Register setup hook functions
 
  Param iMSCP::HooksManager instance
  Return int 0 on success, other on failure
@@ -72,7 +72,7 @@ sub registerSetupHooks($$)
 
 =item preinstall()
 
- Process preinstall tasks.
+ Process preinstall tasks
 
  Return int 0 on success, other on failure
 
@@ -86,7 +86,7 @@ sub preinstall
 
 =item install()
 
- Process install tasks.
+ Process install tasks
 
  Return int 0 on success, other on failure
 
@@ -100,7 +100,7 @@ sub install
 
 =item uninstall()
 
- Process uninstall tasks.
+ Process uninstall tasks
 
  Return int 0 on success, other on failure
 
@@ -114,7 +114,7 @@ sub uninstall
 
 =item setGuiPermissions()
 
- Set file permissions.
+ Set file permissions
 
  Return int 0 on success, other on failure
 
@@ -128,7 +128,7 @@ sub setGuiPermissions
 
 =item deleteMail(\%data)
 
- Process deleteMail tasks.
+ Process deleteMail tasks
 
  Param hash_ref $data A reference to a hash containing mail data
  Return int 0 on success, other on failure
@@ -177,7 +177,7 @@ sub deleteMail($$)
 
 =item _init()
 
- Called by getInstance(). Initialize instance.
+ Initialize instance
 
  Return Addons::Roundcube
 

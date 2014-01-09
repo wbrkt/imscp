@@ -7,7 +7,7 @@ Addons::Policyd - i-MSCP Policyd Weight configurator addon
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+# Copyright (C) 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ Addons::Policyd - i-MSCP Policyd Weight configurator addon
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # @category    i-MSCP
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   2010-2014 by i-MSCP | http://i-mscp.net
 # @author      Daniel Andreca <sci2tech@gmail.com>
 # @author      Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
@@ -40,7 +40,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- This is the Policyd Weight configurator addon for i-MSCP.
+ This is the Policyd Weight configurator addon for i-MSCP
 
  Perl policy daemon for the Postfix MTA Its intended to eliminate forged envelope senders and HELOs
 (i.e. in bogus mails). It allows you to score DNSBLs (RBL/RHSBL), HELO, MAIL FROM and client IP addresses
@@ -55,7 +55,7 @@ improved blocking of spam and virus mails. policyd-weight caches the most freque
 
 =item registerSetupHooks(\%hooksManager)
 
- Register setup hook functions.
+ Register setup hook functions
 
  Param iMSCP::HooksManager instance
  Return int 0 on success, 1 on failure
@@ -72,7 +72,7 @@ sub registerSetupHooks($$)
 
 =item install()
 
- Process install tasks.
+ Process install tasks
 
  Return int 0 on success, 1 on failure
 
@@ -92,7 +92,7 @@ sub install
 
 =item _init()
 
- Called by getInstance(). Initialize instance.
+ Initialize instance
 
  Return Addons::Policyd
 

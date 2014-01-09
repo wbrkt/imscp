@@ -4,7 +4,6 @@
     <folders export="ROOT_APACHE_CONF">${ROOT_CONF}/apache2</folders>
     <folders>${ROOT_APACHE_CONF}/imscp</folders>
     <folders>${INST_PREF}/var/log/apache2/backup</folders>
-    <folders>${INST_PREF}/var/www/scoreboards</folders>
     <folders>${SYSTEM_CONF}/apache</folders>
     <folders>${SYSTEM_CONF}/apache/backup</folders>
     <folders>${SYSTEM_CONF}/apache/working</folders>
@@ -14,7 +13,6 @@
     <copy_config>${SYSTEM_CONF}/apache/00_master_ssl.conf</copy_config>
     <copy_config>${SYSTEM_CONF}/apache/00_nameserver.conf</copy_config>
     <copy_config>${SYSTEM_CONF}/apache/apache.data</copy_config>
-    <copy_config>${SYSTEM_CONF}/apache/fastcgi_imscp.conf</copy_config>
     <copy_config>${SYSTEM_CONF}/apache/fcgid_imscp.conf</copy_config>
     <copy_config>${SYSTEM_CONF}/apache/logrotate.conf</copy_config>
 </install>

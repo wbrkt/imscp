@@ -7,7 +7,7 @@ Addons::FileManager::AjaXplorer::AjaXplorer - i-MSCP AjaXplorer addon
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+# Copyright (C) 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ Addons::FileManager::AjaXplorer::AjaXplorer - i-MSCP AjaXplorer addon
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # @category    i-MSCP
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   2010-2014 by i-MSCP | http://i-mscp.net
 # @author      Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -39,7 +39,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- i-MSCP AjaXplorer addon.
+ i-MSCP AjaXplorer addon
 
  AjaXplorer is a software that can turn any web server into a powerfull file management system and an alternative to
 mainstream cloud storage providers.
@@ -52,7 +52,7 @@ mainstream cloud storage providers.
 
 =item preinstall()
 
- Process preinstall tasks.
+ Process preinstall tasks
 
  Return int 0 on success, other on failure
 
@@ -61,12 +61,12 @@ mainstream cloud storage providers.
 sub preinstall
 {
 	require Addons::FileManager::AjaXplorer::Installer;
-	Addons::FileManager::AjaXplorer::Installer->preinstall();
+	Addons::FileManager::AjaXplorer::Installer->getInstance()->preinstall();
 }
 
 =item install()
 
- Process install tasks.
+ Process install tasks
 
  Return int 0 on success, 1 on failure
 
@@ -75,12 +75,12 @@ sub preinstall
 sub install
 {
 	require Addons::FileManager::AjaXplorer::Installer;
-	Addons::FileManager::AjaXplorer::Installer->install();
+	Addons::FileManager::AjaXplorer::Installer->getInstance()->install();
 }
 
 =item setGuiPermissions()
 
- Set file permissions.
+ Set file permissions
 
  Return int 0 on success, other on failure
 
@@ -89,7 +89,7 @@ sub install
 sub setGuiPermissions
 {
 	require Addons::FileManager::AjaXplorer::Installer;
-	Addons::FileManager::AjaXplorer::Installer->setGuiPermissions();
+	Addons::FileManager::AjaXplorer::Installer->getInstance()->setGuiPermissions();
 }
 
 =back

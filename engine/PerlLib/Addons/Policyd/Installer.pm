@@ -7,7 +7,7 @@ Addons::Policyd::Installer - i-MSCP Policyd Weight configurator installer
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+# Copyright (C) 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ Addons::Policyd::Installer - i-MSCP Policyd Weight configurator installer
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # @category    i-MSCP
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   2010-2014 by i-MSCP | http://i-mscp.net
 # @author      Daniel Andreca <sci2tech@gmail.com>
 # @author      Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
@@ -43,7 +43,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- This is the installer for the Policyd Weight configurator addon.
+ This is the installer for the Policyd Weight configurator addon
 
  See Addons::Policyd for more information.
 
@@ -53,7 +53,7 @@ use parent 'Common::SingletonClass';
 
 =item registerSetupHooks(\%hooksManager)
 
- Register setup hook functions.
+ Register setup hook functions
 
  Param iMSCP::HooksManager instance
  Return int 0 on success, 1 on failure
@@ -71,7 +71,7 @@ sub registerSetupHooks($$)
 
 =item showDialog(\%dialog)
 
- Ask user about RBL.
+ Ask user about RBL
 
  Param iMSCP::Dialog::Dialog|iMSCP::Dialog::Whiptail $dialog
  Return int 0 or 30;
@@ -107,7 +107,7 @@ Do you want to disable additional checks for MTA, HELO and domain?\n
 
 =item install()
 
- Process Policyd addon install tasks.
+ Process Policyd addon install tasks
 
  Return int 0 on success, other on failure
 
@@ -134,7 +134,7 @@ sub install
 
 =item _init()
 
- Called by getInstance(). Initialize Addons::Policyd::Installer instance.
+ Initialize instance
 
  Return Addons::Policyd::Installer
 
@@ -169,7 +169,7 @@ sub _init
 
 =item _bkpConfFile($cfgFile)
 
- Backup configuration file.
+ Backup configuration file
 
  Param SCALAR Path of file to backup
  Return int 0 on success, 1 on failure
@@ -193,7 +193,7 @@ sub _bkpConfFile($$)
 
 =item _buildConf()
 
- Build configuration file.
+ Build configuration file
 
  Return int 0 on success, other on failure
 

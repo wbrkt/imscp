@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright 2010-2013 by internet Multi Server Control Panel
+# Copyright 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # @category		i-MSCP
-# @copyright	2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright	2010-2014 by i-MSCP | http://i-mscp.net
 # @author		Daniel Andreca <sci2tech@gmail.com>
 # @link			http://i-mscp.net i-MSCP Home Site
 # @license      http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -195,7 +195,7 @@ sub _programVersions
 	execute($program, \$stdout, \$stderr);
 	debug($stdout) if $stdout;
 	debug($stderr) if $stderr;
-	fatal('Unable to find $program version: No output') if ! $stdout;
+	fatal("Unable to find $program version: No output") if ! $stdout;
 
 	if($regexp) {
 		if($stdout =~ m!$regexp!) {

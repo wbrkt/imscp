@@ -7,7 +7,7 @@ Addons::PhpMyAdmin - i-MSCP PhpMyAdmin addon
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+# Copyright (C) 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ Addons::PhpMyAdmin - i-MSCP PhpMyAdmin addon
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # @category    i-MSCP
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   2010-2014 by i-MSCP | http://i-mscp.net
 # @author      Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -38,7 +38,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- PhpMyAdmin addon for i-MSCP.
+ PhpMyAdmin addon for i-MSCP
 
  PhpMyAdmin allows administering of MySQL with a web interface.
 
@@ -72,7 +72,7 @@ use parent 'Common::SingletonClass';
 
 =item registerSetupHooks(\%hooksManager)
 
- Register setup hook functions.
+ Register setup hook functions
 
  Param iMSCP::HooksManager instance
  Return int 0 on success, 1 on failure
@@ -89,7 +89,7 @@ sub registerSetupHooks($$)
 
 =item preinstall()
 
- Process preinstall tasks.
+ Process preinstall tasks
 
 =cut
 
@@ -101,7 +101,7 @@ sub preinstall
 
 =item install()
 
- Process install tasks.
+ Process install tasks
 
  Return int 0 on success, 1 on failure
 
@@ -115,7 +115,7 @@ sub install
 
 =item uninstall()
 
- Process uninstall tasks.
+ Process uninstall tasks
 
  Return int 0 on success, other on failure
 
@@ -129,7 +129,7 @@ sub uninstall
 
 =item setGuiPermissions()
 
- Set file permissions.
+ Set file permissions
 
  Return int 0 on success, other on failure
 
@@ -149,7 +149,7 @@ sub setGuiPermissions
 
 =item _init()
 
- Called by getInstance(). Initialize instance.
+ Initialize instance
 
  Return Addons::PhpMyAdmin
 

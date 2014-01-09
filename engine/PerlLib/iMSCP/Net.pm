@@ -7,7 +7,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+# Copyright (C) 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # @category    i-MSCP
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   2010-2014 by i-MSCP | http://i-mscp.net
 # @author      Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -243,7 +243,11 @@ sub normalizeAddr($$)
 {
 	my ($self, $addr) = @_;
 
-	ip_compress_address($addr, 6);
+	if($self->getAddrVersion($addr) eq 'ipv6') {
+		ip_compress_address($addr, 6);
+	} else {
+		$addr;
+	}
 }
 
 =item getDevices()
@@ -254,9 +258,9 @@ sub normalizeAddr($$)
 
 =cut
 
-sub getDevices($;$)
+sub getDevices()
 {
-	my ($self, $status) = @_;
+	my $self = shift;
 
 	wantarray ? keys %{$self->{'devices'}} : join(' ', keys %{$self->{'devices'}});
 }
@@ -348,7 +352,7 @@ sub isDeviceUp($$)
 {
 	my ($self, $dev) = @_;
 
-	($self->isKnownDevice($dev) && $self->{'devices'}->{$dev}->{'status'} eq 'UP') ? 1 : 0;
+	($self->{'devices'}->{$dev}->{'flags'} =~ /^(?:.*,)?UP(?:,.*)?$/) ? 1 : 0;
 }
 
 =item isDeviceDown($dev)
@@ -364,7 +368,7 @@ sub isDeviceDown($$)
 {
 	my ($self, $dev) = @_;
 
-	($self->isKnownDevice($dev) && $self->{'devices'}->{$dev}->{'status'} eq 'DOWN') ? 1 : 0;
+	($self->{'devices'}->{$dev}->{'flags'} =~ /^(?:.*,)?UP(?:,.*)?$/) ? 0 : 1;
 }
 
 =back
@@ -385,54 +389,58 @@ sub _init
 {
 	my $self = shift;
 
-	my ($stdout, $stderr);
-	my $rs = execute("$main::imscpConfig{'CMD_IP'} -o addr show", \$stdout, \$stderr);
-	debug($stdout) if $stdout;
-	error($stderr) if $stderr && $rs;
-	fatal('Unable to get network devices data') if $rs;
-
-	$self->{'devices'} = $self->_extractDevices($stdout);
-	$self->{'addresses'} = $self->_extractAddresses($stdout);
+	$self->{'devices'} = $self->_extractDevices();
+	$self->{'addresses'} = $self->_extractAddresses();
 
 	$self;
 }
 
-=item _extractDevices($data)
+=item _extractDevices()
 
- Extract network devices data (excluding loopback interface)
+ Extract network devices data
 
- Param string String from which devices data must be extracted
  Return hash|undef A hash describing each device found or undef on failure
 
 =cut
 
-sub _extractDevices($$)
+sub _extractDevices()
 {
-	my ($self, $data) = @_;
+	my $self = shift;
+
+	my ($stdout, $stderr);
+	my $rs = execute("$main::imscpConfig{'CMD_IP'} -o link show", \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+	fatal('Unable to get network devices data') if $rs;
 
 	my $devices = {};
 
-	$devices->{$1}->{'status'} = $2 while($data =~ /^\d+:\s+(.*?):.*state\s+(UP|DOWN)/gm);
+	$devices->{$1}->{'flags'} = $2 while($stdout =~ /^[^\s]+\s+(.*?):\s+<(.*)>/gm);
 
 	$devices;
 }
 
-=item _extractAddresses($data)
+=item _extractAddresses()
 
- Extract addresses data (excluding those set on loopback interface)
+ Extract addresses data (scope global only)
 
- Param string String from which addresses data must be extracted
  Return hash|undef A hash describing each IP found or undef on failure
 
 =cut
 
-sub _extractAddresses($$)
+sub _extractAddresses()
 {
-	my ($self, $data) = @_;
+	my $self = shift;
+
+	my ($stdout, $stderr);
+	my $rs = execute("$main::imscpConfig{'CMD_IP'} -o addr show scope global", \$stdout, \$stderr);
+	debug($stdout) if $stdout;
+	error($stderr) if $stderr && $rs;
+	fatal('Unable to get network devices data') if $rs;
 
 	my $addresses = {};
 
-	while($data =~ m%^\d+:\s+(.*?)\s+(inet6?)\s+([^/]+)/(\d+).*?\s+scope\s+global%gm) {
+	while($stdout =~ m%^[^\s]+\s+([^\s]+)\s+([^\s]+)\s+([^/\s]+).*?/(\d+)%gm) {
 		$addresses->{$self->normalizeAddr($3)} = {
 			'prefix_length' => $4,
 			'version' => ($2 eq 'inet') ? 'ipv4' : 'ipv6',

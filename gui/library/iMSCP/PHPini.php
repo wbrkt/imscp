@@ -19,7 +19,7 @@
  * @category	iMSCP
  * @package		iMSCP_Core
  * @subpackage	PHPini
- * @copyright	2010-2013 by i-MSCP team
+ * @copyright	2010-2014 by i-MSCP team
  * @author		Hannes Koschier <hannes@cheat.at>
  * @contributor	Laurent Declercq <l.declercq@nuxwin.com>
  * @contributor Paweł Iwanowski <kontakt@raisen.pl>
@@ -831,7 +831,8 @@ class iMSCP_PHPini
 	protected function _checkDisableFunctionsSyntax($disabledFunctions)
 	{
 		$defaultDisabledFunctions = array(
-			'show_source', 'system', 'shell_exec', 'passthru', 'exec', 'shell', 'symlink', 'phpinfo'
+			'show_source', 'system', 'shell_exec', 'passthru', 'exec', 'shell', 'symlink', 'phpinfo', 'proc_open',
+			'popen'
 		);
 
 		if (!empty($disabledFunctions)) {

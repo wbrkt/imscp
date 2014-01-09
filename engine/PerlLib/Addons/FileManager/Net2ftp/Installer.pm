@@ -7,7 +7,7 @@ Addons::FileManager::Net2ftp::Installer - i-MSCP Net2ftp addon installer
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+# Copyright (C) 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ Addons::FileManager::Net2ftp::Installer - i-MSCP Net2ftp addon installer
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # @category    i-MSCP
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   2010-2014 by i-MSCP | http://i-mscp.net
 # @author      Laurent Declercq <l.declercq@nuxwin.com>
 # @link        http://i-mscp.net i-MSCP Home Site
 # @license     http://www.gnu.org/licenses/gpl-2.0.html GPL v2
@@ -40,7 +40,7 @@ use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
 
- i-MSCP Net2ftp addon installer.
+ i-MSCP Net2ftp addon installer
 
 =head1 PUBLIC METHODS
 
@@ -71,12 +71,12 @@ sub install
 {
 	my $self = shift;
 
-	$self->_installFiles(); # Install AjaXplorer files from local addon packages repository
+	$self->_installFiles();
 }
 
 =item setGuiPermissions()
 
- Set file permissions.
+ Set file permissions
 
  Return int 0 on success, other on failure
 
@@ -104,7 +104,7 @@ sub setGuiPermissions
 
 =item _installFiles()
 
- Install Net2ftp files in production directory.
+ Install Net2ftp files in production directory
 
  Return int 0 on success, other on failure
 

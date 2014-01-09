@@ -7,7 +7,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2013 by internet Multi Server Control Panel
+# Copyright (C) 2010-2014 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 # @category    i-MSCP
-# @copyright   2010-2013 by i-MSCP | http://i-mscp.net
+# @copyright   2010-2014 by i-MSCP | http://i-mscp.net
 # @author      Laurent Declercq <l.declercq@nuxwin.com>
 # @author      Daniel Andreca <sci2tech@gmail.com>
 # @link        http://i-mscp.net i-MSCP Home Site
@@ -37,6 +37,7 @@ use warnings;
 
 use iMSCP::Debug;
 use IPC::Open3;
+use IO::Select;
 use Symbol qw/gensym/;
 use parent 'Exporter';
 
@@ -71,23 +72,29 @@ sub execute($;$$)
 
 	debug("Execute $command");
 
+	my $sel = IO::Select->new();
 	my $pid;
 
-	if(ref $stdout && ref $stderr) {
-		$pid = open3(gensym, \*CATCHOUT, \*CATCHERR, $command);
-		$$stdout = do { local $/; <CATCHOUT> };
-		$$stderr = do { local $/; <CATCHERR> };
-	} elsif(ref $stdout) {
-		$pid = open3(gensym, \*CATCHOUT, ">&STDERR", $command);
-		$$stdout = do { local $/; <CATCHOUT> };
-	} elsif(ref $stderr) {
-		$pid = open3(gensym, ">&STDOUT", \*CATCHERR, $command);
-		$$stderr = do { local $/; <CATCHERR> };
+	if(defined $stdout && defined $stderr) {
+		$pid = open3(gensym, *CATCHOUT, *CATCHERR, $command);
+	$sel->add(*CATCHOUT, *CATCHERR);
+		_readIO($sel, $stdout, $stderr);
+	} elsif(defined $stdout) {
+		$pid = open3(gensym, *CATCHOUT, ">&STDERR", $command);
+		$sel->add(*CATCHOUT);
+		_readIO($sel, $stdout);
+	} elsif(defined $stderr) {
+		$pid = open3(gensym, ">&STDOUT", *CATCHERR, $command);
+		$sel->add(*CATCHERR);
+		_readIO($sel, undef, $stderr);
 	} else {
 		system($command);
 	}
 
 	waitpid($pid, 0) if $pid;
+
+	close(CATCHOUT) if defined $stdout;
+	close(CATCHERR) if defined $stderr;
 
 	chomp($$stdout ||= '');
 	chomp($$stderr ||= '');
@@ -124,7 +131,7 @@ sub escapeShell($)
 
 sub getExitCode(;$)
 {
-	my $exitValue = shift || $?;
+	my $exitValue = shift // $?;
 
 	if ($exitValue == -1) {
 		error("Failed to execute external command: $!");
@@ -141,6 +148,27 @@ sub getExitCode(;$)
 	}
 
 	$exitValue;
+}
+
+sub _readIO
+{
+	my ($sel, $stdout, $stderr) = @_;
+
+	while (my @ready = $sel->can_read()) {
+		if(@ready) {
+			foreach my $fh (@ready) {
+				if ($stderr && fileno($fh) == fileno(CATCHERR)) {
+					$$stderr = do { local $/; <CATCHERR> };
+				} elsif($stdout) {
+					$$stdout = do { local $/; <CATCHOUT> };
+				}
+
+				$sel->remove($fh) if eof($fh);
+			}
+		}
+
+		last;
+	}
 }
 
 =back
