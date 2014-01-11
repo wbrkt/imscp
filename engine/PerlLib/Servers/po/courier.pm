@@ -60,10 +60,9 @@ use parent 'Common::SingletonClass';
 
 =cut
 
-sub registerSetupHooks
+sub registerSetupHooks($$)
 {
-	my $self = shift;
-	my $hooksManager = shift;
+	my ($self, $hooksManager) = @_;
 
 	require Servers::po::courier::installer;
 	Servers::po::courier::installer->getInstance()->registerSetupHooks($hooksManager);
@@ -100,8 +99,6 @@ sub preinstall
 
 sub install
 {
-	my $self = shift;
-
 	require Servers::po::courier::installer;
 	Servers::po::courier::installer->getInstance()->install();
 }
@@ -163,8 +160,6 @@ sub uninstall
 
 sub setEnginePermissions
 {
-	my $self= shift;
-
 	require Servers::po::courier::installer;
 	Servers::po::courier::installer->getInstance()->setEnginePermissions();
 }
@@ -177,10 +172,9 @@ sub setEnginePermissions
 
 =cut
 
-sub postaddMail
+sub postaddMail($$)
 {
-	my $self = shift;
-	my $data = shift;
+	my ($self, $data) = @_;
 
 	if($data->{'MAIL_TYPE'} =~ /_mail/) {
 		# Getting i-MSCP MTA server implementation instance
@@ -282,13 +276,12 @@ sub start
 	my $rs = $self->{'hooksManager'}->trigger('beforePoStart');
 	return $rs if $rs;
 
-	my ($stdout, $stderr);
-
 	for('AUTHDAEMON_SNAME', 'POPD_SNAME', 'IMAPD_SNAME', 'POPD_SSL_SNAME', 'IMAPD_SSL_SNAME') {
-		$rs = execute("$main::imscpConfig{'SERVICE_MNGR'} $self->{'config'}->{$_} start", \$stdout, \$stderr);
+		my $stdout;
+		$rs = execute("$main::imscpConfig{'SERVICE_MNGR'} $self->{'config'}->{$_} start 2>/dev/null", \$stdout);
 		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs;
-		return $rs if $rs;
+		error("Unable to start $self->{'config'}->{$_}") if $rs > 1;
+		return $rs if $rs > 1;
 	}
 
 	$self->{'hooksManager'}->trigger('afterPoStart');
@@ -309,12 +302,11 @@ sub stop
 	my $rs = $self->{'hooksManager'}->trigger('beforePoStop');
 	return $rs if $rs;
 
-	my ($stdout, $stderr);
-
 	for('AUTHDAEMON_SNAME', 'POPD_SNAME', 'IMAPD_SNAME', 'POPD_SSL_SNAME', 'IMAPD_SSL_SNAME') {
-		$rs = execute("$main::imscpConfig{'SERVICE_MNGR'} $self->{'config'}->{$_} stop", \$stdout, \$stderr);
+		my $stdout;
+		$rs = execute("$main::imscpConfig{'SERVICE_MNGR'} $self->{'config'}->{$_} stop 2>/dev/null", \$stdout);
 		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs > 1;
+		error("Unable to stop $self->{'config'}->{$_}") if $rs > 1;
 		return $rs if $rs > 1;
 	}
 
@@ -336,12 +328,11 @@ sub restart
 	my $rs = $self->{'hooksManager'}->trigger('beforePoRestart');
 	return $rs if $rs;
 
-	my ($stdout, $stderr);
-
 	for('AUTHDAEMON_SNAME', 'POPD_SNAME', 'IMAPD_SNAME', 'POPD_SSL_SNAME', 'IMAPD_SSL_SNAME') {
-		$rs = execute("$main::imscpConfig{'SERVICE_MNGR'} $self->{'config'}->{$_} restart", \$stdout, \$stderr);
+		my $stdout;
+		$rs = execute("$main::imscpConfig{'SERVICE_MNGR'} $self->{'config'}->{$_} restart 2>/dev/null", \$stdout);
 		debug($stdout) if $stdout;
-		error($stderr) if $stderr && $rs > 1;
+		error("Unable to restart my $self->{'config'}->{$_}") if $rs > 1;
 		return $rs if $rs > 1;
 	}
 
@@ -357,10 +348,9 @@ sub restart
 
 =cut
 
-sub getTraffic
+sub getTraffic($$)
 {
-	my $self = shift;
-	my $domainName = shift;
+	my ($self, $domainName) = @_;
 
 	my $dbName = "$self->{'wrkDir'}/log.db";
 	my $logFile = "$main::imscpConfig{'TRAFF_LOG_DIR'}/mail.log";
